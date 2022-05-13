@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# echo "dmzoneill:110db6b32fb9d7ad9bxxxxxxxxxxxxxxxxxxx" > ~/.jenkins-api-creds
-# echo "E2K7Rzc3Pbxxxxxxxxx" > ~/.gitlab-api-token
-
 ENDPOINT=https://ci.int.devshift.net/job/automation-analytics-ephemeral/buildWithParameters
-CREDS=$(cat ~/.jenkins-api-creds)
-GITLAB_TOKEN=$(cat ~/.gitlab-api-token)
-
 APP_NAME=pdf-generator
 GIT_LAB_ID=48260
 GITLAB_URL="https://gitlab.cee.redhat.com/api/v4/projects/$GIT_LAB_ID/repository/commits"
@@ -37,13 +31,13 @@ if [ "$#" -eq  "0" ]; then
     #POST_DEPLOYMENT_SCRIPT="POST_DEPLOYMENT_SCRIPT=$POST_DEPLOYMENT_SCRIPT"
     INCLUDE_UI="INCLUDE_UI=$INCLUDE_UI"
 
-    curl "$ENDPOINT" --user $CREDS --data $APP_NAME --data $COMPONENT_NAME --data $IMAGE --data $COMPONENTS_W_RESOURCES --data $DEPLOY_TIMEOUT --data $GIT_COMMIT_INPUT --data $IMAGE_TAG_INPUT --data COMPONENTS= --data $RESERVATION_DURATION --data $INCLUDE_UI
+    curl "$ENDPOINT" --user $JENKINS_CREDS --data $APP_NAME --data $COMPONENT_NAME --data $IMAGE --data $COMPONENTS_W_RESOURCES --data $DEPLOY_TIMEOUT --data $GIT_COMMIT_INPUT --data $IMAGE_TAG_INPUT --data COMPONENTS= --data $RESERVATION_DURATION --data $INCLUDE_UI
     
 else
 
     RELEASE_NAMESPACE="RELEASE_NAMESPACE=true"
     NAMESPACE="NAMESPACE=$1"
-    curl "$ENDPOINT" --user $CREDS --data $RELEASE_NAMESPACE --data $NAMESPACE 
+    curl "$ENDPOINT" --user $JENKINS_CREDS --data $RELEASE_NAMESPACE --data $NAMESPACE 
 
 fi
 

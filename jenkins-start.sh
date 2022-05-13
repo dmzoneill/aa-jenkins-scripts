@@ -2,12 +2,7 @@
 
 # Author: daoneill@redhat.com
 
-# echo "dmzoneill:110db6b32fb9d7ad9bxxxxxxxxxxxxxxxxxxx" > ~/.jenkins-api-creds
-# echo "E2K7Rzc3Pbxxxxxxxxx" > ~/.gitlab-api-token
-
 ENDPOINT=https://ci.int.devshift.net/job/automation-analytics-ephemeral
-CREDS=$(cat ~/.jenkins-api-creds)
-GITLAB_TOKEN=$(cat ~/.gitlab-api-token)
 
 APP_NAME=tower-analytics,gateway,insights-ephemeral
 GIT_LAB_ID=37507
@@ -44,19 +39,19 @@ RESERVATION_DURATION="RESERVATION_DURATION=$RESERVATION_DURATION"
 POST_DEPLOYMENT_SCRIPT="POST_DEPLOYMENT_SCRIPT=$POST_DEPLOYMENT_SCRIPT"
 INCLUDE_UI="INCLUDE_UI=$INCLUDE_UI"
 
-REQ_URL="curl -i --no-progress-meter "$ENDPOINT/buildWithParameters" --user $CREDS --data $POST_DEPLOYMENT_SCRIPT --data $APP_NAME --data $COMPONENT_NAME --data $IMAGE --data $COMPONENTS_W_RESOURCES --data $DEPLOY_TIMEOUT --data $GIT_COMMIT_INPUT --data $IMAGE_TAG_INPUT --data COMPONENTS= --data $RESERVATION_DURATION --data $INCLUDE_UI"
+REQ_URL="curl -i --no-progress-meter "$ENDPOINT/buildWithParameters" --user $JENKINS_CREDS --data $POST_DEPLOYMENT_SCRIPT --data $APP_NAME --data $COMPONENT_NAME --data $IMAGE --data $COMPONENTS_W_RESOURCES --data $DEPLOY_TIMEOUT --data $GIT_COMMIT_INPUT --data $IMAGE_TAG_INPUT --data COMPONENTS= --data $RESERVATION_DURATION --data $INCLUDE_UI"
 OUTPUT=$($REQ_URL)
 QUEUE_URL=$(echo $OUTPUT | grep -oP 'Location: \K.*')
 QUEUE_ID=$(echo $QUEUE_URL | awk -F'/' '{print $6}')
 
-export NEXT_BUILD_NO=$(curl --no-progress-meter "$ENDPOINT/api/json" --user $CREDS | jq '.nextBuildNumber')
+export NEXT_BUILD_NO=$(curl --no-progress-meter "$ENDPOINT/api/json" --user $JENKINS_CREDS | jq '.nextBuildNumber')
 export BUILD_NO=$NEXT_BUILD_NO
 
 echo -n "Waiting for queue item to be scheduled as a job .."
 sleep 5
     
 while true; do
-    STUCK=$(curl --no-progress-meter "$ENDPOINT/api/json" --user $CREDS | jq '.queueItem')
+    STUCK=$(curl --no-progress-meter "$ENDPOINT/api/json" --user $JENKINS_CREDS | jq '.queueItem')
     if [[ "$STUCK" == "null" ]]; then
         echo "" 
         break
@@ -75,14 +70,14 @@ nohup "$ENDPOINT/$NEXT_BUILD_NO/console" >/dev/null 2>&1
 # change to the namespace on the console
 echo ""
 echo -n "Waiting for the namespace to be determined in the build .."
-curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep -o 'apply.*ephemeral-[a-z0-9]\{6\}' >/dev/null 2>&1    
+curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep -o 'apply.*ephemeral-[a-z0-9]\{6\}' >/dev/null 2>&1    
 while [ $? -eq 1 ]; do
     echo -n "."
     sleep 10
-    curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep -o 'apply.*ephemeral-[a-z0-9]\{6\}' >/dev/null 2>&1
+    curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep -o 'apply.*ephemeral-[a-z0-9]\{6\}' >/dev/null 2>&1
 done
 
-export NAMESPACE=$(curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep -o 'apply.*ephemeral-[a-z0-9]\{6\}' | awk -F'-' '{print $5}' | tail -n 1)
+export NAMESPACE=$(curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep -o 'apply.*ephemeral-[a-z0-9]\{6\}' | awk -F'-' '{print $5}' | tail -n 1)
 
 echo ""
 oc project ephemeral-$NAMESPACE
@@ -91,16 +86,16 @@ oc project ephemeral-$NAMESPACE
 # Open the consoledot URL
 echo ""
 echo -n "Waiting for the consoledot URL .."
-curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep 'https://console-openshift-console.apps.*' >/dev/null 2>&1
+curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep 'https://console-openshift-console.apps.*' >/dev/null 2>&1
 while [ $? -eq 1 ]; do	
     echo -n "."
     sleep 10
-    curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep 'https://console-openshift-console.apps.*' >/dev/null 2>&1
+    curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep 'https://console-openshift-console.apps.*' >/dev/null 2>&1
 done
 
 echo ""
 echo ""
-CONSOLEDOT=$(curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep -o 'https://console-openshift-console.apps.*'  | tail -n 1)
+CONSOLEDOT=$(curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep -o 'https://console-openshift-console.apps.*'  | tail -n 1)
 echo " >> $CONSOLEDOT"
 nohup xdg-open "$CONSOLEDOT" >/dev/null 2>&1
 
@@ -108,11 +103,11 @@ nohup xdg-open "$CONSOLEDOT" >/dev/null 2>&1
 # Open the ui URL
 echo ""
 echo -n "Waiting for the UI URL .."
-curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep 'https://front-end-aggregator-ephemeral.*' >/dev/null 2>&1
+curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep 'https://front-end-aggregator-ephemeral.*' >/dev/null 2>&1
 while [ $? -eq 1 ]; do
     echo -n "."
     sleep 10
-    curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $CREDS | grep 'https://front-end-aggregator-ephemeral.*' >/dev/null 2>&1
+    curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep 'https://front-end-aggregator-ephemeral.*' >/dev/null 2>&1
 done
 
 echo ""
