@@ -13,7 +13,7 @@ IMAGE=quay.io/cloudservices/automation-analytics-api
 COMPONENTS_W_RESOURCES=all
 DEPLOY_TIMEOUT=1800
 RESERVATION_DURATION=72
-POST_DEPLOYMENT_SCRIPT=""
+POST_DEPLOYMENT_SCRIPT="aa.sh%20--iqe"
 INCLUDE_UI="true"
 
 GIT_COMMIT_INPUT=""
@@ -22,7 +22,7 @@ IMAGE_TAG_INPUT=""
 if [ -z "$1" ]; then
     GIT_COMMIT_INPUT=$(curl --no-progress-meter -k --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$GITLAB_URL" | jq ".[0][\"id\"]" | sed 's/"//g')
     IMAGE_TAG_INPUT=$(echo $GIT_COMMIT_INPUT | cut -c1-7)
-    POST_DEPLOYMENT_SCRIPT="cypress.sh"
+    # POST_DEPLOYMENT_SCRIPT="aa-cypress.sh"
 else
     GIT_COMMIT_INPUT=$1
     IMAGE_TAG_INPUT=$(echo $GIT_COMMIT_INPUT | cut -c1-7)
@@ -119,3 +119,16 @@ echo " >> export NAMESPACE=ephemeral-$NAMESPACE"
 echo " >> export BONFIRE_NS_REQUESTER=automation-analytics-ephemeral-$NEXT_BUILD_NO"
 export BONFIRE_NS_REQUESTER=automation-analytics-ephemeral-$NEXT_BUILD_NO
 export NAMESPACE=ephemeral-$NAMESPACE
+
+# Open the ui URL
+echo ""
+echo -n "Waiting for finished .."
+curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep 'Finished:' >/dev/null 2>&1
+while [ $? -eq 1 ]; do
+    echo -n "."
+    sleep 10
+    curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS | grep 'Finished:' >/dev/null 2>&1
+done
+
+curl --no-progress-meter "$ENDPOINT/$NEXT_BUILD_NO/consoleText" --user $JENKINS_CREDS > "$IMAGE_TAG_INPUT.log"
+
