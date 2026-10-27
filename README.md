@@ -13,14 +13,14 @@ You'll need to create a
 
 Create jenkins creds file
 
-```
+```text
 $ cat ~/.bashrc.d/jenkins_creds.sh
 export JENKINS_CREDS=daoneill:119e18ebxxxxxxxxxxxx6a9104
 ```
 
 Create GitLab creds file
 
-```
+```text
 $ cat ~/.bashrc.d/gitlab-token.sh
 export GITLAB_TOKEN=E2K7RzcxxxxxxxxxkKsbrER
 ```
@@ -29,13 +29,13 @@ export GITLAB_TOKEN=E2K7RzcxxxxxxxxxkKsbrER
 
 Start and run the latest commit
 
-```
+```text
 ./jenkins-start.sh
 ```
 
 Start and run a specific commit
 
-```
+```text
 ./jenkins-start.sh SHA1
 ```
 
@@ -43,7 +43,7 @@ Start and run a specific commit
 
 SHA1_FROM should be older than SHA1_TO
 
-```
+```text
 ./jenkins-range.sh SHA1_FROM SHA1_TO
 ```
 
@@ -51,7 +51,7 @@ SHA1_FROM should be older than SHA1_TO
 
 This will clear ours and jenkins requester namespaces
 
-```
+```text
 ./jenkins-release.sh
 ```
 
@@ -59,7 +59,7 @@ This will clear ours and jenkins requester namespaces
 
 Something a long the lines of
 
-```
+```text
 Waiting for queue item to be scheduled as a job ..
 
  >> https://ci.int.devshift.net/job/automation-analytics-ephemeral/263/consoleText
